@@ -1,0 +1,99 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: aggregate-istio-admin
+  labels:
+    rbac.authorization.k8s.io/aggregate-to-admin: "true"
+rules:
+  - apiGroups: ["networking.istio.io"]
+    resources: ["sidecars","gateways","destinationrules","envoyfilters","serviceentries","virtualservices"]
+    verbs: ["get","list","watch","create", "delete","patch"]
+  - apiGroups: ["networking.istio.io"]
+    resources: ["syntheticserviceenntries"]
+    verbs: ["get","list","watch"]
+  - apiGroups: ["rbac.istio.io"]
+    resources: ["serviceroles","servicerolebindings","rbacconfigs"]
+    verbs: ["get","list","watch","create","delete","patch"]
+  - apiGroups: ["rbac.istio.io"]
+    resources: ["clusterrbacroles"]
+    verbs: ["get","list","watch"] 
+  - apiGroups: ["config.istio.io"]
+    resources: ["httpapispecbindings","httpapispecs","quotaspecs", "quotaspecbindings"]
+    verbs: ["get","list","watch","create","delete", "patch"]
+  - apiGroups: ["security.istio.io"]
+    resources: ["authorizationpolicies"]
+    verbs: ["get","list","watch","create","delete", "patch"]
+  - apiGroups: ["authentication.istio.io"]
+    resources: ["policies"]
+    verbs: ["get","list","watch","create","delete", "patch"]
+  - apiGroups: ["authentication.istio.io"]
+    resources: ["meshpolicies"]
+    verbs: ["get","list","watch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: istio-clustered
+rules:
+  - apiGroups: ["networking.istio.io"]
+    resources: ["syntheticserviceentries"]
+    verbs: ["get","list","watch"]
+  - apiGroups: ["rbac.istio.io"]
+    resources: ["clusterrbacroles","clusterrbacconfigs"]
+    verbs: ["get","list","watch"]
+  - apiGroups: ["authentication.istio.io"]
+    resources: ["meshpolicies"]
+    verbs: ["get","list","watch"]
+  - apiGroups: [""]
+    resources: ["nodes"]
+    verbs: ["get","list","watch"]
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: istio-clustered
+subjects:
+  - kind: Group
+    name: system:serviceaccounts
+roleRef:
+  kind: ClusterRole
+  name: istio-clustered
+  apiGroup: rbac.authorization.k8s.io
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: istio-citadel-istio-system
+  labels:
+    app: citadel
+    release: istio
+rules:
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["create", "get", "update"]
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["create", "get", "watch", "list", "update", "delete"]
+- apiGroups: [""]
+  resources: ["serviceaccounts", "services", "namespaces"]
+  verbs: ["get", "watch", "list"]
+- apiGroups: ["authentication.k8s.io"]
+  resources: ["tokenreviews"]
+  verbs: ["create"]
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: istio-citadel-istio-system
+  labels:
+    release: istio
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: istio-citadel-istio-system
+subjects:
+  - kind: ServiceAccount
+    name: istio-citadel-service-account
+    namespace: istio-system

@@ -1,0 +1,154 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: istio-cni
+  namespace: istio-system
+  labels:
+    app: istio-cni
+    release: istio
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: istio-cni
+  labels:
+    app: istio-cni
+    release: istio
+rules:
+- apiGroups: [""]
+  resources:
+  - pods
+  - nodes
+  verbs:
+  - get
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: istio-cni
+  labels:
+    app: istio-cni
+    release: istio
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: istio-cni
+subjects:
+- kind: ServiceAccount
+  name: istio-cni
+  namespace: istio-system
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: istio-cni-psp
+  namespace: istio-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: psp:privileged
+subjects:
+- kind: ServiceAccount
+  name: istio-cni
+  namespace: istio-system
+
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: istio-cni-config
+  namespace: istio-system
+  labels:
+    app: istio-cni
+    release: istio
+data:
+  # The CNI network configuration to add to the plugin chain on each node.  The special
+  # values in this config will be automatically populated.
+  cni_network_config: |-
+        {
+          "type": "istio-cni",
+          "log_level": "info",
+          "kubernetes": {
+              "kubeconfig": "__KUBECONFIG_FILEPATH__",
+              "cni_bin_dir": "/opt/cni/bin",
+              "exclude_namespaces": [ "istio-system", "kube-system", "default", "agones-system", "ingress-nginx", "kubernetes-dashboard", "monitoring", "storage" ]
+          }
+        }
+
+---
+kind: DaemonSet
+apiVersion: apps/v1
+metadata:
+  name: istio-cni-node
+  namespace: istio-system
+  labels:
+    k8s-app: istio-cni-node
+    release: istio
+spec:
+  selector:
+    matchLabels:
+      k8s-app: istio-cni-node
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        k8s-app: istio-cni-node
+      annotations:
+        # This, along with the CriticalAddonsOnly toleration below,
+        # marks the pod as a critical add-on, ensuring it gets
+        # priority scheduling and that its resources are reserved
+        # if it ever gets evicted.
+        scheduler.alpha.kubernetes.io/critical-pod: ''
+    spec:
+      nodeSelector:
+        beta.kubernetes.io/os: linux
+      hostNetwork: true
+      tolerations:
+        # Make sure istio-cni-node gets scheduled on all nodes.
+        - effect: NoSchedule
+          operator: Exists
+        # Mark the pod as a critical add-on for rescheduling.
+        - key: CriticalAddonsOnly
+          operator: Exists
+        - effect: NoExecute
+          operator: Exists
+      serviceAccountName: istio-cni
+      # Minimize downtime during a rolling upgrade or deletion; tell Kubernetes to do a "force
+      # deletion": https://kubernetes.io/docs/concepts/workloads/pods/pod/#termination-of-pods.
+      terminationGracePeriodSeconds: 5
+      containers:
+        # This container installs the Istio CNI binaries
+        # and CNI network config file on each node.
+        - name: install-cni
+          image: "docker.io/istio/install-cni:1.4.3"
+          imagePullPolicy: Always
+          command: ["/install-cni.sh"]
+          env:
+            # The CNI network config to install on each node.
+            - name: CNI_NETWORK_CONFIG
+              valueFrom:
+                configMapKeyRef:
+                  name: istio-cni-config
+                  key: cni_network_config
+            - name: CNI_NET_DIR
+              value: /etc/cni/net.d
+          volumeMounts:
+            - mountPath: /host/opt/cni/bin
+              name: cni-bin-dir
+            - mountPath: /host/etc/cni/net.d
+              name: cni-net-dir
+      volumes:
+        # Used to install CNI.
+        - name: cni-bin-dir
+          hostPath:
+            path: /opt/cni/bin
+        - name: cni-net-dir
+          hostPath:
+            path: /etc/cni/net.d
