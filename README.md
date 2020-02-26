@@ -26,5 +26,6 @@ kubectl --nammespace=myns apply -f userns
 
 ## Examples:
 kubectl --namespace=myns apply -f https://raw.githubusercontent.com/istio/istio/release-1.4/samples/bookinfo/platform/kube/bookinfo.yaml
+
 kubectl --namespace=myns apply -f examples
 
