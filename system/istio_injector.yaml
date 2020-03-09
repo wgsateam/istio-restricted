@@ -535,7 +535,6 @@ apiVersion: admissionregistration.k8s.io/v1beta1
 kind: MutatingWebhookConfiguration
 metadata:
   name: istio-sidecar-injector
-        
   labels:
     app: sidecar-injector
     release: istio

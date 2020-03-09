@@ -402,7 +402,7 @@ spec:
         - --trust-domain=cluster.local
         - --keepaliveMaxServerConnectionAge
         - 30m
-        - --appNamespace 
+        - --appNamespace
         - $(POD_NAMESPACE)
         env:
         - name: POD_NAME

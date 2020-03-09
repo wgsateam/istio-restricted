@@ -16,7 +16,7 @@ rules:
     verbs: ["get","list","watch","create","delete","patch"]
   - apiGroups: ["rbac.istio.io"]
     resources: ["clusterrbacroles"]
-    verbs: ["get","list","watch"] 
+    verbs: ["get","list","watch"]
   - apiGroups: ["config.istio.io"]
     resources: ["httpapispecbindings","httpapispecs","quotaspecs", "quotaspecbindings", "rules", "instances", "handlers", "attributemanifests"]
     verbs: ["get","list","watch","create","delete", "patch"]
