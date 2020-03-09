@@ -2,19 +2,19 @@
 istio installation for restricted kubernetes clusters
 
 ## Components:
-| Component      | Status            |
-| -------------- | ----------------- |
-| istio-injector | :white_check_mark:|
-| istio-cni      |:white_check_mark: |
-| istio-citadel  |:white_check_mark: |
-| istio-pilot    |:white_check_mark: |
-| istio-ingressgateway|:white_check_mark:|
-| istio-policy|:black_square_button:|
-| istio-telemetry|:black_square_button:|
-| zipkin/jaeger|:black_square_button:|
-| istio-galley|:black_square_button:|
-| istio-nodeagent|:skull:|
-| kiali|:black_square_button:|
+| Component            | Status              |
+| -------------------- | ------------------- |
+| istio-injector       | :white_check_mark:  |
+| istio-cni            |:white_check_mark:   |
+| istio-citadel        |:white_check_mark:   |
+| istio-pilot          |:white_check_mark:   |
+| istio-ingressgateway |:white_check_mark:   |
+| istio-policy         |:white_check_mark:   |
+| istio-telemetry      |:white_check_mark:   |
+| zipkin/jaeger        |:black_square_button:|
+| istio-galley         |:black_square_button:|
+| istio-nodeagent      |:skull:              |
+| kiali                |:black_square_button:|
 
 
 

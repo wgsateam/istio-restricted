@@ -261,14 +261,14 @@ data:
     accessLogFile: ""
 
     enableEnvoyAccessLogService: false
-    mixerReportServer: istio-telemetry:9091
+    mixerReportServer: istio-policy:9091
     # reportBatchMaxEntries is the number of requests that are batched before telemetry data is sent to the mixer server
     reportBatchMaxEntries: 100
     # reportBatchMaxTime is the max waiting time before the telemetry data of a request is sent to the mixer server
     reportBatchMaxTime: 1s
     disableMixerHttpReports: false
 
-    disablePolicyChecks: true
+    disablePolicyChecks: false
 
 
     # This is the k8s ingress service name, update if you used a different name
@@ -394,7 +394,7 @@ spec:
         - discovery
         - --disable-install-crds
         - --monitoringAddr=:15014
-        - --log_output_level=default:info
+        - --log_output_level=default:warn
         - --domain
         - cluster.local
         - --secureGrpcAddr

@@ -56,7 +56,7 @@ spec:
         - $(POD_NAMESPACE).svc.cluster.local
         - --proxyLogLevel=warning
         - --proxyComponentLogLevel=misc:error
-        - --log_output_level=default:info
+        - --log_output_level=default:warn
         - --drainDuration
         - 45s
         - --parentShutdownDuration
